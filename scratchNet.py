@@ -1,19 +1,24 @@
 import numpy as np
-from layer import DenseLayer, FlattenLayer
+from layer import DenseLayer
 from functions import MeanSquaredError
 import sys
 from prettytable import PrettyTable
+import matplotlib.pyplot as plt
 
 
 class ScratchNet:
     def __init__(self, layers, loss_function='mean_squared_error', learning_rate=0.1):
-        '''Only possible optimizer are sgd and gd'''
+        '''input:
+            layers: list with objects of Type layer
+            loss_function: a loss function given as a string
+            learning_rate: the learning_rate with which the net should train (given as a float)'''
         self.layers = layers
         for index, layer in enumerate(self.layers):
             layer.set_prev_layer(self.layers[index-1] if index > 0 else None)
             layer.set_next_layer(self.layers[index+1] if index + 1 < len(self.layers) else None)
             layer.set_depth(index)
             layer.initialize_params()
+
         possible_losses = {
             'mean_squared_error': MeanSquaredError()
         }
@@ -22,7 +27,7 @@ class ScratchNet:
         else:
             print(f'Loss function {loss_function} is not defined.')
             sys.exit()
-        # optimizer: SGD, does not support other optimizers
+        # optimizer: GD, does not support other optimizers
         if type(learning_rate) == float:
             self.learning_rate = learning_rate
         else:
@@ -30,7 +35,10 @@ class ScratchNet:
             sys.exit()
 
     def predict(self, net_input, print_modulo=1):
-        '''Go through the net once using batch_size elememts from the inputs
+        '''Go through the net once
+            net_input: input that should be predictied given as a 2 dimensional array
+                (so predict() always predicts a set of inputs not one single instance)
+            print_modulo: states after how many examples a status should be printed
 
             returns:
                 a 2D Matrix with the calculated probabilities for each input to belong to a certain class'''
@@ -41,13 +49,17 @@ class ScratchNet:
         # print(f'\nlast calculated targets:\n{net_output}')
         return net_output
 
-    def evaluate(self, X_test, y_test):
+    def evaluate(self, X_test, y_test, print_predictions=False):
+        '''evaluates the net given X_test and y_test'''
         predictions = self.predict(X_test)
-        accuracy = self._calculate_accuracy(predictions, y_test)
-        loss = self._calculate_loss(predictions, y_test)
+        if print_predictions:
+            print(f'predictions:\n{predictions}')
+            print(f'predictions shape: {predictions.shape}')
+        loss, accuracy = self._calculate_loss_and_accuracy(predictions, y_test)
         print(f'loss: {loss}\naccuracy: {accuracy}')
 
     def inspect(self, print_weight_and_biases=False):
+        '''prints information about the net'''
         params_count = 0
         t = PrettyTable(['layer', 'type', 'neurons', 'activation', 'params'])
         for layer in self.layers:
@@ -79,34 +91,32 @@ class ScratchNet:
         bias_gradients = [layer.get_bias_gradients() for layer in self.layers[1:]]
         return weight_gradients, bias_gradients
 
-    def _calculate_accuracy(self, predictions, targets):
-        ''' Calculates the accuracy according to the loss_function
-            targets: the targeted values (two dimensional)
-            calculated: the calculated values from the Net (two dimensional)
-        '''
+    def _calculate_loss_and_accuracy(self, predictions, targets):
+        print(f'predictions: {predictions}\ntargets: {targets}\nshape predictions: {predictions.shape}\nshape targets: {targets.shape}')
         loss = self.loss_function.execute(predictions, targets)
-        acc = 100 - np.mean(loss)*100
-        return acc
-
-    def _calculate_loss(self, predictions, targets):
-        loss = np.mean(self.loss_function.execute(predictions, targets))
-        return loss
+        accuracy = 100 - loss*100
+        return loss, accuracy
 
     def _feed_forward(self, input_sample):
-        output_sample = self.layers[0].activate(input_sample)
+        output_sample = self.layers[0].feed_forward(input_sample)
         for layer in range(0, len(self.layers)):
-            output_sample = self.layers[layer].activate(output_sample)
+            output_sample = self.layers[layer].feed_forward(output_sample)
         return output_sample
 
-    def fit(self, X_train, y_train, X_test=np.zeros(1,), y_test=np.zeros(1,), epochs=1):
+    def fit(self, X_train, y_train, epochs=1, plot_every=None):
         ''' train the initilazied model using the training_data (X_train, y_train)
-            evaluate the model using the given validation_data (X_test, y_test)
-
-            give X_train as the first inputs to the first layer
+            plot_every: says after what amount of epochs a plot should be saved
         '''
-        losses, accuracies = self._gradient_descent(X_train, y_train, epochs)
-        # self.evaluate(predictions, y_train)
-        print(f'all losses: {losses}\nall accuracies: {accuracies}')
+        if not plot_every: plot_every = epochs
+        losses_total, accuracies_total = [], []
+        for x in range(int(epochs/plot_every)):
+            losses, accuracies = self._gradient_descent(X_train, y_train, plot_every)
+            losses_total.extend(losses)
+            accuracies_total.extend(accuracies)
+            plt.title('Accuracies')
+            plt.plot(accuracies_total)
+            plt.savefig('./plots/' + str(x) + '.png')
+            # plt.show()
 
     def _gradient_descent(self, X_train, y_train, epochs):
         '''Uses backprop to reasses the different weights and biases of the net'''
@@ -115,8 +125,7 @@ class ScratchNet:
             predictions = self.predict(X_train)
             self._update_params(X_train, y_train)
             loss, accuracy = (
-                self._calculate_loss(predictions, y_train),
-                self._calculate_accuracy(predictions, y_train)
+                self._calculate_loss_and_accuracy(predictions, y_train)
             )
             losses.append(loss)
             accuracies.append(accuracy)
