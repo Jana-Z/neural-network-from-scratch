@@ -23,13 +23,13 @@ class Layer(ABC):
 
     def add_to_weights(self, x):
         if x.shape == self.weights.shape:
-            self.weights += x
+            self.weights = np.add(self.weights, x)
         else:
             print(f'shapes in add_to_weights did not align\nreceived shape {x.shape}\n but weights are in shape {self.weights.shape}')
             sys.exit()
     def add_to_biases(self, x):
         if x.shape == self.biases.shape:
-            self.biases += x
+            self.biases = np.add(self.biases, x)
         else:
             print(f'shapes in add_to_biases did not align\nreceived shape {x.shape}\n but biases are in shape {self.biases.shape}')
             sys.exit()
@@ -81,7 +81,7 @@ class DenseLayer(Layer):
         self.next_layer = next_layer
         # Initialized during _feed_forward, needed for backprop
         self.activations = None
-        self.layer_input = None
+        self.layer_output = None
         possible_activation_functions = {
             'sigmoid' : Sigmoid(),
             'none': DoNothing(),   # for testing purposes
@@ -109,7 +109,7 @@ class DenseLayer(Layer):
             layer_output = layer_input.astype(np.float32)
         if not np.array_equal(self.biases, np.empty(0)):
             layer_output += self.biases
-        self.layer_input = layer_output    #need to safe layer_output and activations for backprop
+        self.layer_output = layer_output   #need to safe layer_output and activations for backprop
         self.activations = self.activation_function.execute(layer_output)
         return self.activations
 
@@ -119,24 +119,23 @@ class DenseLayer(Layer):
             starting point for backpropagation'''
         cost_gradients = cost_function.derivative(
             self.activations, targets
-        ) * self.activation_function.derivative(self.layer_input)
+        ) * self.activation_function.derivative(self.layer_output)
         self._update_params(cost_gradients)
         return cost_gradients
 
+    # correct
     def feed_backward(self, prev_input_gradients):
         '''feed backward step through the network'''
-        new_input_gradients = np.dot(
-            self.next_layer.get_weights().transpose(), prev_input_gradients
-        ) * self.activation_function.derivative(self.layer_input)
+        new_input_gradients = (self.next_layer.get_weights().T @ prev_input_gradients) * self.activation_function.derivative(self.layer_output)
         self._update_params(new_input_gradients)
         return new_input_gradients
 
     def _update_params(self, input_gradients):
         '''updates the weights and biases according to gradients'''
         self.bias_gradients = input_gradients
-        self.weight_gradients = np.dot(
-            input_gradients[np.newaxis].T, self.prev_layer.get_activations()[np.newaxis ]
-        )
+        # input_gradients[np.newaxis].T @ self.prev_layer.get_activations()[np.newaxis]\
+        # input_gradients.reshape(-1, 1)
+        self.weight_gradients = input_gradients.reshape(-1, 1) @ self.prev_layer.get_activations().reshape(1, -1)
 
 # # Flatten layer is also a DenseLayer
 # class FlattenLayer(DenseLayer):

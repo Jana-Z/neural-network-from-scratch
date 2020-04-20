@@ -55,6 +55,8 @@ class ScratchNet:
         if print_predictions:
             print(f'predictions:\n{predictions}')
             print(f'predictions shape: {predictions.shape}')
+            print(f'predictions[0]: {predictions[0]}')
+            print(f'should be: {y_test[0]}')
         loss, accuracy = self._calculate_loss_and_accuracy(predictions, y_test)
         print(f'loss: {loss}\naccuracy: {accuracy}')
 
@@ -82,7 +84,7 @@ class ScratchNet:
     def _backpropagate(self, X_train_sample, y_train_sample):
         '''backpropagates one sample out of X_train and y_train
             called by _update_params'''
-        # predictions = self._feed_forward(X_train_sample)
+        predictions = self._feed_forward(X_train_sample)
         # print(f'predictions: {predictions}')
         gradients = self.layers[-1].compute_cost_gradients(y_train_sample, self.loss_function)
         for layer in reversed(self.layers[1:-1]):
@@ -92,14 +94,16 @@ class ScratchNet:
         return weight_gradients, bias_gradients
 
     def _calculate_loss_and_accuracy(self, predictions, targets):
-        print(f'predictions: {predictions}\ntargets: {targets}\nshape predictions: {predictions.shape}\nshape targets: {targets.shape}')
-        loss = self.loss_function.execute(predictions, targets)
-        accuracy = 100 - loss*100
+        # print(f'predictions: {predictions[:5]}\ntargets: {targets[:5]}\nshape predictions: {predictions.shape}\nshape targets: {targets.shape}')
+        loss = self.loss_function.execute(predictions,  targets)
+        predicted_right = sum(np.argmax(predictions, axis = 1) == np.argmax(targets, axis = 1))
+        # print(f'predictions.shape[0]: {predictions.shape[0]}\npredicted_right: {predicted_right}')
+        accuracy = 100 * (predicted_right / predictions.shape[0])
         return loss, accuracy
 
     def _feed_forward(self, input_sample):
         output_sample = self.layers[0].feed_forward(input_sample)
-        for layer in range(0, len(self.layers)):
+        for layer in range(1, len(self.layers)):
             output_sample = self.layers[layer].feed_forward(output_sample)
         return output_sample
 
@@ -143,12 +147,15 @@ class ScratchNet:
             weight_gradients = np.add(weight_gradients, sample_weight_gradients)
             bias_gradients = np.add(bias_gradients, sample_bias_gradients)
         for layer, layer_weight_gradients, layer_bias_gradients in zip(
-            self.layers[1:], weight_gradients, bias_gradients
-        ):
+            self.layers[1:], weight_gradients, bias_gradients):
+            # update_layer_weights = -self.learning_rate * layer_weight_gradients / len(X_train)
+            # update_layer_biases =  -self.learning_rate * layer_bias_gradients / len(X_train)
+            # print(f'update_layer_weights: \n{update_layer_weights}')
+            # print(f'update_layer_biases: \n{update_layer_biases}')
             layer.add_to_weights(
-                -self.learning_rate *
-                layer_weight_gradients / len(X_train)
+                - self.learning_rate *
+                layer_weight_gradients / X_train.shape[0]
             )
             layer.add_to_biases(
-                -self.learning_rate * layer_bias_gradients / len(X_train)
+                - self.learning_rate * layer_bias_gradients / X_train.shape[0]
             )
