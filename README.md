@@ -1,6 +1,11 @@
 # neural-network-from-scratch
 An implimentation of a simple Dense neural network using just numpy
 
+## Features
+- DenseLayer
+- sigmoid and softmax as activation function
+- Gradient Descent (using backprop) as an optimizer
+
 ## How to use
 The network can be called similiar to keras.
 Examples for XOR and Mnist can be found in main.py
