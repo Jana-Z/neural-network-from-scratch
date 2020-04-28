@@ -56,3 +56,10 @@ Note, that if you want to use the this network with mnist, you should also get:
 - [Mnist data set](http://yann.lecun.com/exdb/mnist/)
 
 ```main.py``` expects a folder called "mnist-data" at top-level.
+
+## To Do
+
+- [ ] Add FlattenLayer that takes a two dimensional input
+- [ ] Make Gradient Descent Stochastic
+- [ ] Add more optimizers or Convolutional Layers
+
