@@ -123,7 +123,6 @@ class DenseLayer(Layer):
         self._update_params(cost_gradients)
         return cost_gradients
 
-    # correct
     def feed_backward(self, prev_input_gradients):
         '''feed backward step through the network'''
         new_input_gradients = (self.next_layer.get_weights().T @ prev_input_gradients) * self.activation_function.derivative(self.layer_output)
