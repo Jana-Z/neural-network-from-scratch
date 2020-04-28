@@ -1,9 +1,9 @@
 import numpy as np
 import sys
-from functions import Sigmoid, DoNothing, Softmax
 from abc import ABC
 from prettytable import PrettyTable
 
+from .functions import Sigmoid, DoNothing, Softmax
 
 class Layer(ABC):
     def calculate_output(self):

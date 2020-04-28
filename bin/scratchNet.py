@@ -1,9 +1,10 @@
 import numpy as np
-from layer import DenseLayer
-from functions import MeanSquaredError
 import sys
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
+
+from .layer import DenseLayer
+from .functions import MeanSquaredError
 
 
 class ScratchNet:

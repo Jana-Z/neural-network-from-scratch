@@ -1,10 +1,10 @@
 import numpy as np
 
-from scratchNet import ScratchNet
-from layer import DenseLayer
-from functions import MeanSquaredError
-from functions import Sigmoid, DoNothing, Softmax, MeanSquaredError
-from preprocessing import load_and_split_mnist, plot_image
+from bin.scratchNet import ScratchNet
+from bin.layer import DenseLayer
+from bin.functions import MeanSquaredError
+from bin.functions import Sigmoid, DoNothing, Softmax, MeanSquaredError
+from bin.preprocessing import load_and_split_mnist, plot_image
 
 # MNIST
 print('Importing MNIST...')
