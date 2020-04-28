@@ -1,4 +1,4 @@
-# neural-network-from-scratch
+# Neural Network from Scratch
 An implimentation of a simple Dense neural network using just numpy.
 
 ## Table of coentens
@@ -48,7 +48,7 @@ Project built with:
 - *compute_cost_gradients* computes the gradients in the output layer
 - *feed_backward* backpropergate one sample through the net
 
-## Code Ezample
+## Code Example
 Code examples for XOR and Mnist can be found in ```main.py```
 
 Note, that if you want to use the this network with mnist, you should also get:
