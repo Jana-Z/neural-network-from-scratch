@@ -2,11 +2,11 @@
 An implimentation of a simple Dense neural network using just numpy.
 
 ## Table of coentens
-- Introduction
-- Technologies
-- Features
-- Code examples
-- To do
+- [Introduction](#introduction)
+- [Technologies](#technologies)
+- [Features](#Features)
+- [Code example](#Code-example)
+- [To do](#to-do)
 
 ## Introduction
 This is a simple neural network using backpropergation and dense layers to classify simple projects.
@@ -25,7 +25,7 @@ Project built with:
 
 ### ScratchNet
 #### Initialized with
-- ist of layers
+- list of layers
 - loss_function (default to mean_squared_error)
 - learning_rate (default to 0.1)
 
